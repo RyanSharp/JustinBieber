@@ -194,7 +194,7 @@ def displayStats(request, data_id):
     form = dataForm(instance=facebook)
     return render_to_response('fbsharing/url_form.html', {'form': form, 'data': data}, context_instance=RequestContext(request))
 
-# Callback function for Facebook API.  Exchanges a code for FB Access Token and then makes a call to the FQL API for share counts
+# Callback function for Facebook API.  Exchanges a code for FB Access Token and then makes a call to the FQL API for share counts (FQL = Facebook Query Language)
 def getBetterFacebookStats(request, data_id):
     try:
         data = fbDataRequest.objects.get(pk=data_id)
@@ -203,17 +203,22 @@ def getBetterFacebookStats(request, data_id):
             data.save()
     except Exception as e:
         print e
-    request_params = "S" + "ELECT+click_count,comment_count,like_count,share_count,total_count"
-    request_api = "+FROM+link_stat+WHERE+url="
-    request_target = '"' + data.url + '"'
+    # Parsing code from API response to our initial request for access
     code = request.GET.get('code')
+    # Setting up OAuth client to connect to the FQL API
     consumer = oauth.Consumer(key=APP_ID, secret=APP_SECRET)
     client = oauth.Client(consumer)
     redirect_uri = "https://" + request.META['HTTP_HOST'] + '/fb/getBetterFacebookStats/' + data_id
+    # Prepare Access Token request URL (Must supply same redirect URI as initial request for access)
     request_url = ACCESS_TOKEN_URL + '?client_id=%s&client_secret=%s&grant_type=client_credentials' % (APP_ID, APP_SECRET)
     resp, cont = client.request(request_url, 'GET')
+    # Parse Access Token from the API's response to access token request
     access_token = dict(urlparse.parse_qsl(cont))['access_token']
     try:
+        # Preparing components of FQL API requeset url
+        request_params = "S" + "ELECT+click_count,comment_count,like_count,share_count,total_count"
+        request_api = "+FROM+link_stat+WHERE+url="
+        request_target = '"' + data.url + '"'
         request_url2 = ALT_QUERY_URL + request_params + request_api + request_target + "&access_token=" + access_token
         resp, cont = client.request(request_url2, 'GET')
         root = fromstring(cont)
@@ -242,12 +247,15 @@ def pullAllStats(request, data_id):
     except Exception as e:
         return render_to_response('fbsharing/error_page.html', {'text': 'Queried Data Object Could Not Be Found'}, context_instance=RequestContext(request))
     try:
+        # Setup OAuth client to connect to Twitter REST API
         consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
         client = oauth.Client(consumer)
         request_url = TWITTER_SEARCH_URL + data.url
         resp, cont = client.request(request_url, 'GET')
+        # Check if response is successful
         if resp['status'] == '200':
             new_dic = ast.literal_eval(cont)
+            # Parse Tweet count from API response
             data.tweets = int(new_dic['count'])
             data.save()
         else:
@@ -258,6 +266,7 @@ def pullAllStats(request, data_id):
     try:
         content = urllib.urlopen("http://www.stumbleupon.com/services/1.01/badge.getinfo?url=" + data.url)
         cont_data = json.load(content)
+        # Check is required since API response is differs based on whether or not the link exists in their database
         if cont_data['result']['in_index'] == False:
             data.stumble = 0
             data.save()
@@ -268,6 +277,7 @@ def pullAllStats(request, data_id):
         print "Stumble Upon Failure"
         print e
     try:
+        # Receive response from Pinterest API call
         content = urllib.urlopen("http://api.pinterest.com/v1/urls/count.json?callback=&url=" + data.url).read()
         new_dic = ast.literal_eval(content)
         data.pins = int(new_dic['count'])
@@ -276,6 +286,7 @@ def pullAllStats(request, data_id):
         print "Pinterest Failure"
         print e
     try:
+        # Request to linked in API
         content = urllib.urlopen("http://www.linkedin.com/countserv/count/share?url=" + data.url + "&format=json").read()
         new_dic = ast.literal_eval(content)
         data.linkedin = int(new_dic['count'])
@@ -293,6 +304,7 @@ def pullAllStats(request, data_id):
             # Search for specific key in the G+ Button HTML page
             if content[point:point+19] == "window.__SSR = {c: ":
                 count = 0
+                # Once count has been found on page, parse actual data from html
                 while(searching):
                     if content[point+19+count:point+20+count] == ' ':
                         data.g_plus_one = int(content[point+19:point+17+count])
@@ -306,6 +318,7 @@ def pullAllStats(request, data_id):
         print e
     try:
         data = fbDataRequest.objects.get(pk=data_id)
+        # API request to youtube will only be made if the link has been verified as a YouTube URL
         if checkForYouTube(data_id):
             my_url = STATISTICS_URL + "?id=" + getVideoID(data.url) + "&part=statistics&field=monetizationDetails" + "%" + "2Cstatistics&key=" + API_KEY
             r = urllib2.urlopen(my_url)
