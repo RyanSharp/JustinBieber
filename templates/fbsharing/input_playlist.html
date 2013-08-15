@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head></head>
+<body>
+	<form action="{% url 'fbsharing.views.getYouTubePlaylist' %}" method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+		<input type="text" name="playlist_id" id="id_playlist_id"/>
+		<input type="submit" value="Submit"/>
+	</form>
+</body>
+</html>

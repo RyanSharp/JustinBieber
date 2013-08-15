@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head></head>
+<body>
+	<p>Check status of a new URL (or keyword)</p>
+	<form action="{% url 'fbsharing.views.getFacebookStats' %}" method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+		{{form}}
+		<input type="submit" value="Submit"/>
+	</form>
+	</br>
+	<h2>Engagement Data For "{{data.url}}"</h2>
+	<p><i>As of {{data.timestamp}}</i></p>
+	<p><b>YouTube Statistics</b></p>
+	<p>Comments - {{data.yt_comment_count}}</p>
+	<p>Views - {{data.yt_view_count}}</p>
+	<p>Favorites - {{data.yt_fav_count}}</p>
+	<p>Likes - {{data.yt_like_count}}</p>
+	<p>Dislikes - {{data.yt_dislike_count}}</p>
+	<p><b>Facebook Statistics</b></p>
+	<p>Shares - {{data.facebook_shares}}</p>
+	<p>Likes - {{data.facebook_likes}}</p>
+	<p>Comments - {{data.facebook_comments}}</p>
+	<p>Total Interactions - {{data.facebook_total}}</p>
+	<p><b>Google+ Statistics</b></p>
+	<p>Plus Ones - {{data.g_plus_one}}</p>
+	<p><b>Other Engagement Metrics</b></p>
+	<p>Twitter Tweets  - {{data.tweets}}</p>
+	<p>Stumble Upon Views - {{data.stumble}}</p>
+	<p>Pinterest Pins - {{data.pins}}</p>
+	<p>LinkedIn Shares - {{data.linkedin}}</p>
+	</br>
+	
+</body>
+</html>

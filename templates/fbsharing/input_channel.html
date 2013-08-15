@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head></head>
+<body>
+	<form action="{% url 'fbsharing.views.getChannelVideos' %}" method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+		<input type="text" name="channel_id" id="id_channel_id"/>
+		<input type="submit" value="Submit"/>
+	</form>
+</body>
+</html>

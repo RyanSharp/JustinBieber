@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head></head>
+<body>
+	<form action="{% url 'fbsharing.views.getFacebookStats' %}" method="post" enctype="multipart/form-data">
+		{% csrf_token %}
+		{{form}}
+		<input type="submit" value="Submit"/>
+	</form>
+</body>
+</html>
