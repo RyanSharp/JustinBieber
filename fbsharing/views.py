@@ -176,7 +176,8 @@ def getFacebookStats(request):
             if form.is_valid():
                 try:
                     facebook = form.save()
-                    # return redirect('fbsharing.views.getRecentTweets', facebook.id)
+                    # This callback URL allows facebook to redirect back to our server once OAuth login has been completed
+                    # The callback url for the Access Token request must be identical to the one being used here (to request a code to exchange for an access token)
                     callback_url = 'http://' + request.META['HTTP_HOST'] + '/fb/betterStats/' + str(facebook.id)
                     return HttpResponseRedirect(REQUEST_TOKEN_URL + '?client_id=%s&client_secret=%s&grant_type=client_credentials&redirect_uri=%s' % (APP_ID, APP_SECRET, callback_url))
                 except Exception as e:
