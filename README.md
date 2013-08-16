@@ -3,6 +3,12 @@ JustinBieber
 
 THE MODELS:
 
+The goal of this Engagement Tool is to be able to track engagement statistics for ANY url (not just YouTube).  YouTube statistics will not be available for non-YouTube
+	urls, obviously, but all other API's will give responses regardless of the link's origins.
+
+This version of the Engagement tool can provide non-YouTube data for any link provided by the user.  To recieve YouTube data, youtube links MUST be of some variation of
+	www.youtube.com, so urls like yout.ube currently do not work.
+
 We currently have 3 models that exist in the fbsharing app:
 	Campaign, fbDataRequest, DailyRun
 

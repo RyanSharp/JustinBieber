@@ -199,6 +199,7 @@ def displayStats(request, data_id):
 def getBetterFacebookStats(request, data_id):
     try:
         data = fbDataRequest.objects.get(pk=data_id)
+        # This if-statement guarantees that if the link is to a YouTube video it is formatted as the standard youtube link (http://www.youtube.com/watch?v=VID_ID)
         if checkForYouTube(data_id):
             data.url = convertYouTubeURL(data.url)
             data.save()
@@ -209,6 +210,7 @@ def getBetterFacebookStats(request, data_id):
     # Setting up OAuth client to connect to the FQL API
     consumer = oauth.Consumer(key=APP_ID, secret=APP_SECRET)
     client = oauth.Client(consumer)
+    # This redirect_uri must be IDENTICAL to the callback url provided in the initial call to the Facebook API (where we requested the code)
     redirect_uri = "https://" + request.META['HTTP_HOST'] + '/fb/getBetterFacebookStats/' + data_id
     # Prepare Access Token request URL (Must supply same redirect URI as initial request for access)
     request_url = ACCESS_TOKEN_URL + '?client_id=%s&client_secret=%s&grant_type=client_credentials' % (APP_ID, APP_SECRET)
@@ -222,6 +224,7 @@ def getBetterFacebookStats(request, data_id):
         request_target = '"' + data.url + '"'
         request_url2 = ALT_QUERY_URL + request_params + request_api + request_target + "&access_token=" + access_token
         resp, cont = client.request(request_url2, 'GET')
+        # FQL API responds with XML data, parse here using the XML Tree format
         root = fromstring(cont)
         # Iterate through XML response looking for the share, like, and comment fields
         for child in root:
@@ -249,8 +252,10 @@ def pullAllStats(request, data_id):
         return render_to_response('fbsharing/error_page.html', {'text': 'Queried Data Object Could Not Be Found'}, context_instance=RequestContext(request))
     try:
         # Setup OAuth client to connect to Twitter REST API
+        # TWITTER_CONSUMER_KEY and TWITTER_CONSUMER_SECRET are provided directly by the Twitter API service
         consumer = oauth.Consumer(key=TWITTER_CONSUMER_KEY, secret=TWITTER_CONSUMER_SECRET)
         client = oauth.Client(consumer)
+        # TWITTER_SEARCH_URL is a somewhat hidden API feature.  Not officially documented, so could depricate without notice
         request_url = TWITTER_SEARCH_URL + data.url
         resp, cont = client.request(request_url, 'GET')
         # Check if response is successful
@@ -265,7 +270,9 @@ def pullAllStats(request, data_id):
         print "Twitter Failure"
         print e
     try:
+        # API request to Stumble Upon
         content = urllib.urlopen("http://www.stumbleupon.com/services/1.01/badge.getinfo?url=" + data.url)
+        # Response is already a json object, we load the json object from content into cont_data
         cont_data = json.load(content)
         # Check is required since API response is differs based on whether or not the link exists in their database
         if cont_data['result']['in_index'] == False:
@@ -280,6 +287,7 @@ def pullAllStats(request, data_id):
     try:
         # Receive response from Pinterest API call
         content = urllib.urlopen("http://api.pinterest.com/v1/urls/count.json?callback=&url=" + data.url).read()
+        # Parse string response into json object
         new_dic = ast.literal_eval(content)
         data.pins = int(new_dic['count'])
         data.save()
@@ -289,6 +297,7 @@ def pullAllStats(request, data_id):
     try:
         # Request to linked in API
         content = urllib.urlopen("http://www.linkedin.com/countserv/count/share?url=" + data.url + "&format=json").read()
+        # Parse string response into json object
         new_dic = ast.literal_eval(content)
         data.linkedin = int(new_dic['count'])
         data.save()
@@ -299,6 +308,7 @@ def pullAllStats(request, data_id):
         # Open html page for Google+ Plus One Button for a specific URL
         request_url = "https://plusone.google.com/u/0/_/+1/fastbutton?url=" + convertString(data.url)
         content = urllib.urlopen(request_url).read()
+        # Searching for target within the 1400-1800 char elements on the page
         point = 1400
         searching = True
         while(point < 1800 and searching):
@@ -323,6 +333,7 @@ def pullAllStats(request, data_id):
         if checkForYouTube(data_id):
             my_url = STATISTICS_URL + "?id=" + getVideoID(data.url) + "&part=statistics&field=monetizationDetails" + "%" + "2Cstatistics&key=" + API_KEY
             r = urllib2.urlopen(my_url)
+            # Parse the response string (r) as a json object
             response = ast.literal_eval(r.read())
             data.yt_comment_count = int(response['items'][0]['statistics']['commentCount'])
             data.yt_view_count = int(response['items'][0]['statistics']['viewCount'])
@@ -342,9 +353,11 @@ def pullAllStats(request, data_id):
 # Returns list of video IDs contained in a youtube playlist (requires playlist ID in the request)
 def getYouTubePlaylist(request):
     if request.method == 'POST':
+        # Using YouTube Data API 2.0... A call to this url will return all playlists that have an ID that matches the one submitted in the request.POST
         url = "https://gdata.youtube.com/feeds/api/playlists/" + request.POST['playlist_id'] + "?v=2"
         try:
             r = urllib2.urlopen(url)
+            # data is returned in XML format, so parse it in XML Tree Format
             root = fromstring(r.read())
             for child in root:
                 for unit in child:
@@ -360,9 +373,10 @@ def getYouTubePlaylist(request):
         return redirect('fbsharing.views.getYouTubePlaylist')
     return render_to_response('fbsharing/input_playlist.html', {}, context_instance=RequestContext(request))
 
-# Parse Video ID's from the json response for Playlist content
+# Parse Video ID from the json response for Playlist content
 def returnPlaylistItemID(video_tag, playlist_id):
     count = 0
+    # Incrementally analyze XML Node content looking for playlist ID to then return video ID
     while(True):
         if video_tag[count:count+len(playlist_id)] == playlist_id:
             return video_tag[count+len(playlist_id)+1:]
