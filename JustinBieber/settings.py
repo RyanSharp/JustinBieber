@@ -133,6 +133,7 @@ INSTALLED_APPS = (
     'djcelery',
     'fbsharing',
     'youtube',
+    'facebook',
     'tweepy',
 )
 

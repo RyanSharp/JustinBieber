@@ -3,7 +3,7 @@ import hashlib
 import urllib
 import urllib2
 import urlparse
-import twitter
+# import twitter
 import base64
 import httplib
 import json

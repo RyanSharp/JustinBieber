@@ -16,4 +16,5 @@ urlpatterns = patterns('',
     # url(r'^admin/', include(admin.site.urls)),
     url(r'^fb/', include('fbsharing.urls')),
     url(r'^yt/', include('youtube.urls')),
+    url(r'^facebook/', include('facebook.urls')),
 )

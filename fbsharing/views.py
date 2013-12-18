@@ -3,7 +3,7 @@ import hashlib
 import urllib
 import urllib2
 import urlparse
-import twitter
+# import twitter
 import base64
 import httplib
 import json
@@ -176,6 +176,7 @@ def getFacebookStats(request):
             if form.is_valid():
                 try:
                     facebook = form.save()
+                    return redirect('fbsharing.views.getBetterFacebookStats', facebook.id)
                     # This callback URL allows facebook to redirect back to our server once OAuth login has been completed
                     # The callback url for the Access Token request must be identical to the one being used here (to request a code to exchange for an access token)
                     callback_url = 'http://' + request.META['HTTP_HOST'] + '/fb/betterStats/' + str(facebook.id)
@@ -331,10 +332,11 @@ def pullAllStats(request, data_id):
         data = fbDataRequest.objects.get(pk=data_id)
         # API request to youtube will only be made if the link has been verified as a YouTube URL
         if checkForYouTube(data_id):
-            my_url = STATISTICS_URL + "?id=" + getVideoID(data.url) + "&part=statistics&field=monetizationDetails" + "%" + "2Cstatistics&key=" + API_KEY
+            my_url = STATISTICS_URL + "?id=" + getVideoID(data.url) + "&part=statistics" + "%" + "2Csnippet&field=monetizationDetails" + "%" + "2Cstatistics&key=" + API_KEY
             r = urllib2.urlopen(my_url)
             # Parse the response string (r) as a json object
             response = ast.literal_eval(r.read())
+            print response['items'][0]['snippet']['title']
             data.yt_comment_count = int(response['items'][0]['statistics']['commentCount'])
             data.yt_view_count = int(response['items'][0]['statistics']['viewCount'])
             data.yt_fav_count = int(response['items'][0]['statistics']['favoriteCount'])

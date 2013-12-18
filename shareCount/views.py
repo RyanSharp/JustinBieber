@@ -509,6 +509,7 @@ def pullAllStats(request, data_id):
             my_url = STATISTICS_URL + "?id=" + getVideoID(data.url) + "&part=statistics&field=monetizationDetails" + "%" + "2Cstatistics&key=" + API_KEY
             r = urllib2.urlopen(my_url)
             response = ast.literal_eval(r.read())
+            print response['items'][0]['snippet']['title']
             data.yt_comment_count = int(response['items'][0]['statistics']['commentCount'])
             data.yt_view_count = int(response['items'][0]['statistics']['viewCount'])
             data.yt_fav_count = int(response['items'][0]['statistics']['favoriteCount'])
